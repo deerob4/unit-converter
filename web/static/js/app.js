@@ -1,21 +1,55 @@
-// Brunch automatically concatenates all files in your
-// watched paths. Those paths can be configured at
-// config.paths.watched in "brunch-config.js".
-//
-// However, those files will only be executed if
-// explicitly imported. The only exception are files
-// in vendor, which are never wrapped in imports and
-// therefore are always executed.
+import axios from 'axios';
 
-// Import dependencies
-//
-// If you no longer want to use a dependency, remember
-// to also remove its path from "config.paths.watched".
-import "phoenix_html"
+function convert() {
+  const convertButton = document.getElementById('convert');
+  const updateButton = document.getElementById('update');
+  const answer = document.getElementById('answer');
 
-// Import local files
-//
-// Local files can be imported directly using relative
-// paths "./socket" or full ones "web/static/js/socket".
+  convertButton.addEventListener('click', () => {
+    const input = document.getElementById('input');
+    const [from, to] = extractUnits(document.getElementById('units').value);
 
-// import socket from "./socket"
+    let conversion = { value: input.value, from, to };
+
+    if (input.value) {
+      axios.get('/api/convert', { params: conversion })
+        .then(r => answer.innerHTML = `${input.value} ${from} is ${r.data.answer} ${to}`)
+        .catch(r => console.log(r));
+    }
+  });
+
+  updateButton.addEventListener('click', () => {
+    axios.get('/api/update-conversions')
+      .then(r => {
+        const unitSelect = document.getElementById('units');
+        removeChildNodes(unitSelect);
+        r.data.conversions.forEach(c => createOption(c, unitSelect));
+      });
+  });
+
+  answer.addEventListener('click', () => {
+    answer.innerHTML = '';
+  });
+}
+
+function extractUnits(string) {
+  return string
+    .toLowerCase()
+    .split(' ')
+    .filter(x => x !== 'to');
+}
+
+function createOption(optionValue, selectParent) {
+  const opt = document.createElement('option');
+  opt.value = optionValue;
+  opt.innerHTML = optionValue
+  selectParent.appendChild(opt);
+}
+
+function removeChildNodes(parent) {
+  while (parent.firstChild) {
+    parent.removeChild(parent.firstChild);
+  }
+}
+
+convert();

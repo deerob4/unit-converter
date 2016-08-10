@@ -19,8 +19,10 @@ defmodule UnitConverter.Router do
     get "/", PageController, :index
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", UnitConverter do
-  #   pipe_through :api
-  # end
+  scope "/api", UnitConverter do
+    pipe_through :api
+
+    get "/convert", PageController, :do_convert
+    get "/update-conversions", PageController, :update_conversions
+  end
 end
